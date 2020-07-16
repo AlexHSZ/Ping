@@ -134,13 +134,15 @@ void send_ping(int sock_fd, struct sockaddr_in *ping_addr, char *ping_dns, char 
         pckt.hdr.code = 0;
         pckt.hdr.un.echo.id = getpid(); 
           
-        for ( i = 0; i < sizeof(pckt.msg)-1; i++ ) 
-            pckt.msg[i] = i+'0'; 
+        // for ( i = 0; i < sizeof(pckt.msg)-1; i++ ) 
+        //     pckt.msg[i] = i+'0'; 
           
-        pckt.msg[i] = 0; 
+        // pckt.msg[i] = 0; 
         pckt.hdr.un.echo.sequence = msg_count++; 
-        pckt.hdr.checksum = checksum(&pckt, sizeof(pckt)); 
-        // memset(&pckt, 'J', DEFAULT_PKT_S - sizeof(struct icmphdr));
+        // pckt.hdr.checksum = checksum(&pckt, sizeof(pckt)); 
+        memset(pckt.msg, '0', DEFAULT_PKT_S - sizeof(struct icmphdr));
+        pckt.hdr.checksum = checksum(&pckt, sizeof(ping_pkt));
+        
 
         usleep(SLEEP_RATE);
 
@@ -166,13 +168,13 @@ void send_ping(int sock_fd, struct sockaddr_in *ping_addr, char *ping_dns, char 
             if (flag) {
 
                 // Literally no idea why the same implementation is giving an unexpected code of 128 instead of 0
-                // if(!(pckt.hdr.type == 69 && pckt.hdr.code == 0)) {
-                //     printf("Packet received with ICMP type %d and error code %d\n", pckt.hdr.type, pckt.hdr.code);
-                // } else {
+                if(!(pckt.hdr.type == 69 && pckt.hdr.code == 0)) {
+                    printf("Packet received with ICMP type %d and error code %d\n", pckt.hdr.type, pckt.hdr.code);
+                } else {
                     // 64 bytes from lhr48s11-in-f14.1e100.net (216.58.210.206): icmp_seq=2 ttl=114 time=11.5 ms
                     printf("%d bytes from %s (%s) : icmp_seq=%d ttl=%d time=%.1f ms\n", DEFAULT_PKT_S, ping_dns, ping_ip, msg_count, ttl_val, (double) rtt_msec);
                     msg_recv_count++;
-                //}
+                }
             }
         }
     }
@@ -181,7 +183,7 @@ void send_ping(int sock_fd, struct sockaddr_in *ping_addr, char *ping_dns, char 
 
     double time_elapsed = ((double)(ts_end.tv_nsec -  ts_start.tv_nsec)) / 1000000.0;
     total_msec = (ts_end.tv_sec - ts_start.tv_sec) * 1000.0 + time_elapsed;
-
+    close(sock_fd);
     printf("\n--- %s ping statistics ---\n", rev_dns);
     printf("%d packets transmitted, %d received, %d packet loss, time %dms\n", msg_count, msg_recv_count, (int) (((msg_count - msg_recv_count) / msg_count) * 100.0), (int) total_msec);
     printf("rtt min/avg/max/mdev = \n");
