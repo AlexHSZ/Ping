@@ -170,7 +170,7 @@ void send_ping(int sock_fd, struct sockaddr_in *ping_addr, char *ping_dns, char 
                 //     printf("Packet received with ICMP type %d and error code %d\n", pckt.hdr.type, pckt.hdr.code);
                 // } else {
                     // 64 bytes from lhr48s11-in-f14.1e100.net (216.58.210.206): icmp_seq=2 ttl=114 time=11.5 ms
-                    printf("%d bytes from %s (%s) : icmp_seq=%d ttl=%d time=%f ms\n", DEFAULT_PKT_S, ping_dns, ping_ip, msg_count, ttl_val, (double) rtt_msec);
+                    printf("%d bytes from %s (%s) : icmp_seq=%d ttl=%d time=%.2f ms\n", DEFAULT_PKT_S, ping_dns, ping_ip, msg_count, ttl_val, (double) rtt_msec);
                     msg_recv_count++;
                 //}
             }
@@ -179,11 +179,11 @@ void send_ping(int sock_fd, struct sockaddr_in *ping_addr, char *ping_dns, char 
 
     clock_gettime(CLOCK_MONOTONIC, &ts_end);
 
-    double time_elapsed = ((double)(ts_end.tv_nsec -  ts_start.tv_nsec));
+    double time_elapsed = ((double)(ts_end.tv_nsec -  ts_start.tv_nsec)) / 1000000.0;
     total_msec = (ts_end.tv_sec - ts_start.tv_sec) * 1000.0 + time_elapsed;
 
     printf("--- %s ping statistics ---\n", rev_dns);
-    printf("%d packets transmitted, %d received, %d packet loss, time %fms\n", msg_count, msg_recv_count, (int) (((msg_count - msg_recv_count) / msg_count) * 100.0), (double) total_msec);
+    printf("%d packets transmitted, %d received, %d packet loss, time %dms\n", msg_count, msg_recv_count, (int) (((msg_count - msg_recv_count) / msg_count) * 100.0), (int) total_msec);
     printf("rtt min/avg/max/mdev = \n");
 }
 
