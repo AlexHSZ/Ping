@@ -12,6 +12,31 @@
 
 using namespace std;
 
+/* Resolves the reverse lookup of a given hostname or ip address
+*/
+string reverse_dns_lookup(const string ip_addr, int AF_type)
+{
+    char hbuf[NI_MAXHOST], sbuf[NI_MAXSERV];
+
+    if (AF_type == AF_INET) {
+        // IPv4
+        struct sockaddr_in ipv4;
+        ipv4.sin_family = AF_type;
+        ipv4.sin_addr.s_addr = inet_addr(ip_addr.c_str());
+        
+        if (getnameinfo((struct sockaddr*) &ipv4, sizeof(struct sockaddr), hbuf, NI_MAXHOST, sbuf, NI_MAXSERV, NI_NAMEREQD) != 0) {
+            cerr << "Could not resolve reverse lookup of hostname." << endl;
+            exit(EXIT_FAILURE);
+        }
+    } else {
+        // IPv6
+        // To be implemented;
+    }
+
+    // if (getnameinfo(addr, ))
+    return string(hbuf);
+}
+
 /* Resolves a given hostname to (the first) IP address in standard dot notation
 */
 string dns_lookup(const char* hostname)
@@ -47,9 +72,16 @@ string dns_lookup(const char* hostname)
 
     inet_ntop(addr_ptr->ai_family, addr, ipstr, sizeof(ipstr));
 
+    cout << "AF_INET: " << AF_INET << ", AF_INET6: " << AF_INET6 << endl;
     cout << "IPver: " << ipver <<  ", " << ipstr << endl;
+
+    string rev_host = reverse_dns_lookup(ipstr, addr_ptr->ai_family);
+
+    cout << "Reverse hostname: " << rev_host << endl;
     return string(ipstr);
 }
+
+
 
 int main(int argc, char* argv[])
 {
